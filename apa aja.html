@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy BMI Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;700&display=swap');
+
+        body {
+            background: radial-gradient(circle at center, #1a002b, #3e065f);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .stars {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .motivational {
+            font-size: 20px;
+            font-weight: 500;
+            margin-top: 20px;
+            color: #f7e334;
+            letter-spacing: 1px;
+        }
+        
+        .panel {
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin: 20px auto;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .panel:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+        }
+        .hidden {
+            display: none;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 90%;
+        }
+        button {
+            background-color: #6a0dad;
+            color: white;
+            z-index: 2;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background-color: #9b30ff;
+        }
+        @media (max-width: 600px) {
+            .panel {
+                width: 95%;
+                padding: 20px;
+            }
+            input, button {
+                font-size: 14px;
+            }
+        }
+        .parallax {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .sparkle-star {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px white;
+    animation: sparkle 1s ease-out;
+}
+@keyframes sparkle {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+/* Efek Galactic Glow */
+.galactic-glow {
+    font-size: 24px;
+    z-index: 2;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 0 10px #ff66ff, 0 0 20px #ff33cc, 0 0 30px #cc33ff;
+    animation: glowEffect 3s infinite alternate ease-in-out;
+}
+
+/* Animasi Glow */
+@keyframes glowEffect {
+    0% { text-shadow: 0 0 10px #ff66ff, 0 0 20px #ff33cc, 0 0 30px #cc33ff; }
+    100% { text-shadow: 0 0 20px #ff99ff, 0 0 30px #ff66ff, 0 0 40px #cc66ff; }
+}
+.sunlight {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 204, 102, 0.5) 0%, rgba(255, 204, 102, 0) 80%);
+        filter: blur(50px);
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        pointer-events: none;
+    }
+    .planet-container {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        top: -10%; /* Orbit agak ke atas */
+        left: 0;
+        pointer-events: none; /* Supaya planet tidak mengganggu interaksi lainnya */
+    }
+
+    .planet {
+        position: absolute;
+        z-index: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle, #ffcc66, #ff8800);
+        box-shadow: 0 0 15px rgba(255, 165, 0, 0.5);
+        cursor: pointer;
+    }
+
+    @keyframes orbit {
+        from { transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg); }
+        to { transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg); }
+    }
+    .fact-button {
+            position: fixed;
+            width: 200px;
+            height: auto;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #0b0033;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: auto;
+        }
+
+        .fact-button:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 1);
+        }
+  
+    </style>
+</head>
+<body>
+    <canvas id="starCanvas"></canvas>
+    <canvas id="constellationCanvas"></canvas>
+    <div class="stars"></div>
+    <div class="aurora"></div>
+    <h1 class="galactic-glow">Welcome to the Galaxy!</h1>
+    <div class="sunlight"></div>
+    <div class="parallax" id="parallax"></div>
+    <div class="fact-box" id="factBox"></div>
+    <div id="galaxyBackground"> </div>
+
+    <div class="planet-container">
+    <div class="planet" style="--orbit-radius: 80px; width: 20px; height: 20px; top: 50%; left: 50%; animation: orbit 8s linear infinite;"></div>
+    <div class="planet" style="--orbit-radius: 120px; width: 25px; height: 25px; top: 50%; left: 50%; animation: orbit 12s linear infinite;"></div>
+    <div class="planet" style="--orbit-radius: 160px; width: 15px; height: 15px; top: 50%; left: 50%; animation: orbit 15s linear infinite;"></div>
+    <div class="planet" style="--orbit-radius: 200px; width: 30px; height: 30px; top: 50%; left: 50%; animation: orbit 18s linear infinite;"></div>
+    <div class="planet" style="--orbit-radius: 240px; width: 20px; height: 20px; top: 50%; left: 50%; animation: orbit 20s linear infinite;"></div>
+    <div class="planet" style="--orbit-radius: 280px; width: 35px; height: 35px; top: 50%; left: 50%; animation: orbit 22s linear infinite;"></div>
+    <div class="planet" style="--orbit-radius: 320px; width: 18px; height: 18px; top: 50%; left: 50%; animation: orbit 24s linear infinite;"></div>
+    <div class="planet" style="--orbit-radius: 360px; width: 28px; height: 28px; top: 50%; left: 50%; animation: orbit 26s linear infinite;"></div>
+</div>
+    
+    <div class="panel" id="welcomeScreen">
+        <h1>Selamat Datang di Galaxy BMI Calculator</h1>
+        <p>Jelajahi Berat Badanmu di Antariksa!</p>
+        <button onclick="navigate('bmiIntro')">Mulai Perjalanan</button>
+    </div>
+
+    <div class="panel hidden" id="bmiIntro">
+        <h2>Apa itu BMI?</h2>
+        <p>Body Mass Index (BMI) adalah ukuran untuk mengetahui kategori berat badan seseorang berdasarkan tinggi badannya.</p>
+        <button onclick="navigate('bmiContainer')">Lanjut ke Kalkulator BMI</button>
+    </div>
+
+    <div class="panel hidden" id="bmiContainer">
+        <h1>Galaxy BMI Calculator</h1>
+        <input type="text" id="name" placeholder="Masukkan Nama">
+        <input type="number" id="age" placeholder="Masukkan Usia" min="1">
+        <input type="number" id="weight" placeholder="Masukkan Berat (kg)" min="1">
+        <input type="number" id="height" placeholder="Masukkan Tinggi (cm)" min="1">
+        <button onclick="calculateBMI()">Hitung BMI Anda</button>
+
+        <!-- Hasil BMI akan muncul di sini -->
+        <h2 id="result"></h2>
+        <h3 id="status"></h3>
+        <p id="description"></p>
+        <div id="motivationalMessage"></div>
+
+        <!-- Tombol untuk lanjut ke halaman berikutnya -->
+        <button id="nextButton" class="hidden" onclick="navigate('bmiBenefits')">Lanjut ke Manfaat BMI</button>
+    </div>
+
+    <div class="panel hidden" id="bmiBenefits">
+        <h2>Manfaat BMI</h2>
+        <p>Mengetahui BMI dapat membantu memahami kesehatan tubuh, mengontrol berat badan, dan mencegah risiko penyakit.</p>
+        <button onclick="navigate('healthTips')">Lanjut ke Tips Sehat</button>
+    </div>
+    
+    <div class="panel hidden" id="healthTips">
+        <h2>Tips Hidup Sehat</h2>
+        <ul>
+            <li>Konsumsi makanan seimbang dengan cukup serat.</li>
+            <li>Olahraga minimal 30 menit setiap hari.</li>
+            <li>Kurangi konsumsi gula dan makanan olahan.</li>
+            <li>Cukup tidur dan hindari stres berlebihan.</li>
+        </ul>
+        <button onclick="navigate('bmiConclusion')">Lanjut ke Kesimpulan</button>
+    </div>
+
+    <div class="panel hidden" id="bmiConclusion">
+        <h2>Kesimpulan</h2>
+        <p>Menjaga BMI ideal dapat meningkatkan kesehatan dan kualitas hidup. Mulailah hidup sehat dari sekarang!</p>
+        <button onclick="navigate('welcomeScreen')">Kembali ke Awal</button>
+    </div>
+
+    <script>
+        function navigate(panelId) {
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.add('hidden'));
+            document.getElementById(panelId).classList.remove('hidden');
+        }
+        // Parallax Effect
+        document.addEventListener("scroll", () => {
+            let scrollPosition = window.scrollY;
+            document.getElementById("parallax").style.transform = `translateY(${scrollPosition * 0.5}px)`;
+        });
+        
+
+        function calculateBMI() {
+            let name = document.getElementById('name').value.trim();
+            let age = parseInt(document.getElementById('age').value);
+            let weight = parseFloat(document.getElementById('weight').value);
+            let height = parseFloat(document.getElementById('height').value) / 100;
+
+            if (!name || !age || !weight || !height) {
+                alert("Harap isi semua kolom dengan benar.");
+                return;
+            }
+            
+
+            let bmi = weight / (height * height);
+            let category = "";
+            let description = "";
+            let motivationalMessage = "";
+
+            if (bmi < 18.5) {
+                category = "Kurus";
+                
+                motivationalMessage = "Jangan khawatir, dengan pola makan yang sehat dan latihan, kamu pasti bisa lebih kuat! 💪";
+            } else if (bmi < 25) {
+                category = "Normal";
+                
+                motivationalMessage = "Keep it up, you're doing awesome! 🎯 Terus jaga pola hidup sehat ya!";
+            } else if (bmi < 30) {
+                category = "Berat Badan Berlebih";
+                
+                motivationalMessage = "No worries, perubahan itu proses! Mulai dengan langkah kecil, dan kamu pasti bisa! 🔥";
+            } else {
+                category = "Obesitas";
+                
+            }
+
+            document.getElementById('result').innerText = `${name}, usia ${age}, BMI kamu adalah ${bmi.toFixed(2)} (${category}).`;
+            document.getElementById('status').innerText = `Kategori: ${category}`;
+            document.getElementById('description').innerText = description;
+            document.getElementById("motivationalMessage").innerText = motivationalMessage;
+
+            // Tampilkan tombol untuk melanjutkan ke manfaat BMI
+            document.getElementById('nextButton').classList.remove('hidden');
+        }
+        const canvas = document.getElementById("starCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+
+let stars = [];
+let shootingStars = [];
+let constellations = [];
+const numStars = 200;
+const numShootingStars = 3;
+const numConstellations = 2;
+
+document.body.addEventListener("click", function (event) {
+    // Pastikan hanya klik pada area background
+    if (!event.target.closest(".panel, button, input, .planet")) {
+        showRandomFact(event.clientX, event.clientY);
+    }
+});
+
+function showRandomFact(x, y) {
+const facts = [
+        "✨ Ada lebih dari 100 miliar galaksi di alam semesta!",
+        "🚀 Bintang terdekat dengan Bumi selain Matahari adalah Proxima Centauri.",
+        "🌠 Meteor adalah potongan asteroid atau komet yang terbakar saat masuk atmosfer Bumi.",
+        "🪐 Saturnus memiliki cincin terbesar di tata surya!",
+        "🌍 Bumi bukan satu-satunya planet dengan air, Europa (bulan Jupiter) juga punya lautan bawah permukaan.",
+        "🔭 Cahaya bintang yang kita lihat sekarang bisa berasal dari jutaan tahun lalu.",
+        "☄ Asteroid terbesar di tata surya adalah Ceres, yang juga diklasifikasikan sebagai planet kerdil.",
+        "🌌 Galaksi Bima Sakti memiliki sekitar 100-400 miliar bintang!",
+        "🚀 Cahaya dari Matahari membutuhkan sekitar 8 menit untuk mencapai Bumi.",
+        "🪐 Saturnus memiliki lebih dari 80 bulan yang diketahui!",
+        "☄ Asteroid terbesar di tata surya adalah Ceres, dengan diameter sekitar 940 km.",
+        "🌠 Nebula adalah tempat lahirnya bintang-bintang baru.",
+        "🪐 Saturnus memiliki lebih dari 80 bulan yang mengorbitnya!",
+        "🚀 Kecepatan cahaya adalah sekitar 299.792 km/detik!"
+
+    ];
+    const randomFact = facts[Math.floor(Math.random() * facts.length)];
+
+    let factBox = document.createElement("div");
+    factBox.classList.add("fact-button");
+    factBox.innerText = randomFact;
+
+    // Cegah klik pada button agar tidak memunculkan button baru
+    if (event.target.classList.contains("fact-button")) return;
+
+    // Hapus button sebelumnya jika ada
+    let existingButton = document.querySelector(".fact-button");
+        if (existingButton) {
+            existingButton.remove();
+        }
+
+    // Posisi muncul berdasarkan lokasi klik
+    factBox.style.left = `${x}px`;
+    factBox.style.top = `${y}px`;
+
+    document.body.appendChild(factBox);
+
+    setTimeout(() => {
+        factBox.style.opacity = "1";
+    }, 100);
+
+    setTimeout(() => {
+        factBox.style.opacity = "0";
+        setTimeout(() => {
+            factBox.remove();
+        }, 500);
+    }, 3000);
+    
+}
+
+function random(min, max) {
+    return Math.random() * (max - min) + min;
+}
+function drawAurora() {
+    let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, "rgba(50, 150, 255, 0.2)");
+    gradient.addColorStop(0.5, "rgba(150, 50, 255, 0.3)");
+    gradient.addColorStop(1, "rgba(255, 50, 150, 0.2)");
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function createStars() {
+    for (let i = 0; i < numStars; i++) {
+        stars.push({
+            x: random(0, canvas.width),
+            y: random(0, canvas.height),
+            radius: random(0.5, 2),
+            alpha: random(0.3, 1),
+            twinkleSpeed: random(0.02, 0.05)
+        });
+    }
+}
+
+function createShootingStars() {
+    for (let i = 0; i < numShootingStars; i++) {
+        shootingStars.push({
+            x: random(0, canvas.width),
+            y: random(0, canvas.height / 2),
+            length: random(50, 100),
+            speed: random(4, 7),
+            opacity: 1
+        });
+    }
+}
+
+function createConstellations() {
+    for (let i = 0; i < numConstellations; i++) {
+        let constellation = [];
+        let numPoints = 4;
+        let startX = random(100, canvas.width - 100);
+        let startY = random(100, canvas.height - 100);
+        
+        for (let j = 0; j < numPoints; j++) {
+            constellation.push({
+                x: startX + random(-50, 50),
+                y: startY + random(-50, 50)
+            });
+        }
+        constellations.push(constellation);
+    }
+}
+
+function drawStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(star => {
+        ctx.globalAlpha = star.alpha;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        star.alpha += star.twinkleSpeed * (Math.random() > 0.5 ? 1 : -1);
+    });
+}
+
+function drawShootingStars() {
+    shootingStars.forEach(star => {
+        ctx.globalAlpha = star.opacity;
+        ctx.beginPath();
+        ctx.moveTo(star.x, star.y);
+        ctx.lineTo(star.x - star.length, star.y + star.length);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        star.x -= star.speed;
+        star.y += star.speed;
+        star.opacity -= 0.02;
+        if (star.opacity <= 0) {
+            star.x = random(0, canvas.width);
+            star.y = random(0, canvas.height / 2);
+            star.opacity = 1;
+        }
+    });
+}
+
+function drawConstellations() {
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.lineWidth = 1;
+    constellations.forEach(points => {
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.stroke();
+    });
+}
+
+
+
+function animate() {
+    drawAurora();
+    drawStars();
+    drawShootingStars();
+    drawConstellations();
+    requestAnimationFrame(animate);
+}
+
+// Efek Bintang Meledak Saat Klik
+const sky = document.querySelector("body");
+sky.addEventListener("click", (e) => {
+    let star = document.createElement("div");
+    star.classList.add("sparkle-star");
+    star.style.left = `${e.clientX}px`;
+    star.style.top = `${e.clientY}px`;
+    document.body.appendChild(star);
+
+    setTimeout(() => {
+        star.remove();
+    }, 1000);
+});
+
+// Efek Aurora Gemerlap Saat Mouse Bergerak
+document.addEventListener("mousemove", (e) => {
+    const aurora = document.querySelector(".aurora");
+    let x = e.clientX / window.innerWidth - 0.5;
+    let y = e.clientY / window.innerHeight - 0.5;
+    aurora.style.transform = `translate(${x * 20}px, ${y * 20}px)`;
+});
+
+// Efek Glow Saat Hover di Panel BMI
+document.querySelectorAll(".panel").forEach(panel => {
+    panel.addEventListener("mouseenter", () => {
+        panel.style.boxShadow = "0 0 30px rgba(255, 255, 255, 0.8)";
+    });
+    panel.addEventListener("mouseleave", () => {
+        panel.style.boxShadow = "0 0 20px rgba(255, 255, 255, 0.5)";
+    });
+});
+
+
+createStars();
+createShootingStars();
+createConstellations();
+animate();
+
+    </script>
+</body>
+</html>
